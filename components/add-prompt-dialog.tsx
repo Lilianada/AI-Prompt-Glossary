@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { submitPrompt } from "@/app/actions"
 import { CATEGORIES, type PromptCategory } from "@/types/prompt"
@@ -35,6 +35,12 @@ export default function AddPromptDialog() {
   const [userName, setUserName] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  
+  // Set mounted state when component is mounted on client
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const resetForm = () => {
     setTitle("")
@@ -99,10 +105,20 @@ export default function AddPromptDialog() {
     }
   }
 
+  // If not mounted yet, render just the button without dialog functionality to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <Button variant="outline" size="sm" className="rounded-full gap-1.5">
+        <Plus className="h-4 w-4" />
+        <span>Add Prompt</span>
+      </Button>
+    )
+  }
+  
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="rounded-full h-9 px-4 gap-1.5">
+        <Button variant="outline" size="sm" className="rounded-full gap-1.5">
           <Plus className="h-4 w-4" />
           <span>Add Prompt</span>
         </Button>

@@ -9,25 +9,26 @@ interface CategoryWithCount {
 }
 
 export default function CategorySidebar() {
-  const [categories, setCategories] = useState<CategoryWithCount[]>([])
+  // Initialize with static categories structure to prevent hydration mismatch
+  const initialCategories: CategoryWithCount[] = [
+    { name: "All", count: 0 },
+    ...CATEGORIES.map(category => ({ name: category, count: 0 }))
+  ];
+  
+  const [categories, setCategories] = useState<CategoryWithCount[]>(initialCategories)
   const [selectedCategory, setSelectedCategory] = useState<PromptCategory | "All">("All")
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
 
-  // Initialize with empty categories to prevent hydration errors
+  // Set mounted state when component is mounted on client
   useEffect(() => {
-    // Set initial empty state
-    const initialCategories: CategoryWithCount[] = [
-      { name: "All", count: 0 }
-    ];
-    
-    CATEGORIES.forEach((category) => {
-      initialCategories.push({
-        name: category,
-        count: 0,
-      });
-    });
-    
-    setCategories(initialCategories);
+    setMounted(true)
+  }, [])
+  
+  // Fetch category counts after initial render
+  useEffect(() => {
+    // Only run on client-side
+    if (typeof window === 'undefined') return;
     
     const fetchCategoryCounts = async () => {
       try {
@@ -87,7 +88,7 @@ export default function CategorySidebar() {
     <div className="space-y-4">
       <h3 className="text-sm font-medium text-muted-foreground mb-4">Categories</h3>
       <div className="space-y-1">
-        {loading ? (
+        {!mounted || loading ? (
           // Skeleton loader for categories
           Array.from({ length: CATEGORIES.length + 1 }).map((_, index) => (
             <div 

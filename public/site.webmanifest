@@ -1,0 +1,22 @@
+{
+  "name": "AI Prompt Glossary",
+  "short_name": "AI Prompts",
+  "description": "A curated collection of effective prompts for working with AI tools",
+  "icons": [
+    {
+      "src": "/favicon.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/apple-icon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ],
+  "theme_color": "#ffffff",
+  "background_color": "#000000",
+  "display": "standalone",
+  "start_url": "/",
+  "orientation": "portrait"
+}

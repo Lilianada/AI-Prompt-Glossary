@@ -9,50 +9,54 @@ import { toast } from "@/hooks/use-toast"
 import { motion, AnimatePresence } from "framer-motion"
 
 export default function PromptList() {
-  // Initialize with empty arrays to prevent hydration errors
-  const [prompts, setPrompts] = useState<Prompt[]>([])
-  const [filteredPrompts, setFilteredPrompts] = useState<Prompt[]>([])
+  // Use null for initial state to properly handle loading state
+  const [prompts, setPrompts] = useState<Prompt[] | null>(null)
+  const [filteredPrompts, setFilteredPrompts] = useState<Prompt[] | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<PromptCategory | null>(null)
   const [loading, setLoading] = useState(true)
-  const [isClient, setIsClient] = useState(false)
+  const [mounted, setMounted] = useState(false)
   
-  // Set isClient to true once component mounts to ensure we're running in browser
+  // Set mounted to true once component mounts to ensure we're running in browser
   useEffect(() => {
-    setIsClient(true)
+    setMounted(true)
   }, [])
 
   // Fetch initial prompts
   useEffect(() => {
-    const fetchPrompts = async () => {
-      try {
-        const response = await fetch('/api/prompts')
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.message || 'Failed to fetch prompts')
+    // Only run this effect on the client side
+    if (typeof window !== 'undefined') {
+      const fetchPrompts = async () => {
+        try {
+          setLoading(true)
+          const response = await fetch('/api/prompts')
+          if (!response.ok) {
+            const errorData = await response.json()
+            throw new Error(errorData.message || 'Failed to fetch prompts')
+          }
+          const data = await response.json()
+          if (!data.success) {
+            throw new Error(data.message || 'Failed to fetch prompts')
+          }
+          const fetchedPrompts = data.data
+          setPrompts(fetchedPrompts)
+          setFilteredPrompts(fetchedPrompts)
+        } catch (error) {
+          console.error("Error fetching prompts:", error)
+          toast({
+            title: "Error loading prompts",
+            description: "There was an error loading the prompts. Please try again later.",
+            variant: "destructive",
+          })
+          setPrompts([])
+          setFilteredPrompts([])
+        } finally {
+          setLoading(false)
         }
-        const data = await response.json()
-        if (!data.success) {
-          throw new Error(data.message || 'Failed to fetch prompts')
-        }
-        const fetchedPrompts = data.data
-        setPrompts(fetchedPrompts)
-        setFilteredPrompts(fetchedPrompts)
-      } catch (error) {
-        console.error("Error fetching prompts:", error)
-        toast({
-          title: "Error loading prompts",
-          description: "There was an error loading the prompts. Please try again later.",
-          variant: "destructive",
-        })
-        setPrompts([])
-        setFilteredPrompts([])
-      } finally {
-        setLoading(false)
       }
+      
+      fetchPrompts()
     }
-
-    fetchPrompts()
   }, [])
 
   // Listen for category selection from sidebar
@@ -115,7 +119,7 @@ export default function PromptList() {
       </div>
 
       <AnimatePresence mode="wait">
-        {!isClient || loading ? (
+        {!mounted || loading ? (
           <motion.div
             key="loading"
             initial={{ opacity: 0, y: 10 }}
@@ -127,7 +131,7 @@ export default function PromptList() {
             <FancyLoader size="md" />
             <p className="text-muted-foreground animate-pulse">Loading prompts...</p>
           </motion.div>
-        ) : filteredPrompts.length > 0 ? (
+        ) : filteredPrompts && filteredPrompts.length > 0 ? (
           <motion.div
             key="results"
             initial={{ opacity: 0 }}
@@ -135,7 +139,7 @@ export default function PromptList() {
             transition={{ staggerChildren: 0.05 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
           >
-            {filteredPrompts.map((prompt) => (
+            {filteredPrompts?.map((prompt) => (
               <motion.div
                 key={prompt.id}
                 initial={{ opacity: 0, y: 20 }}

@@ -10,11 +10,26 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 export default function AboutDialog() {
   const [isOpen, setIsOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  
+  // Set mounted state when component is mounted on client
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
+  // If not mounted yet, render just the button without dialog functionality to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <Button variant="ghost" size="icon" className="rounded-full" aria-label="About AI Prompt Glossary">
+        <HelpCircle className="h-[1.2rem] w-[1.2rem]" />
+      </Button>
+    )
+  }
+  
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -43,7 +58,7 @@ export default function AboutDialog() {
             <h3 className="text-sm font-medium">Who built it?</h3>
             <p className="text-sm text-muted-foreground">
               This project was built by the community as an open-source initiative to improve AI interactions for
-              everyone. The minimalist design was inspired by modern UI principles and v0 by Vercel.
+              everyone. The minimalist design was inspired by modern UI principles and cursor.directory/learn.
             </p>
           </div>
 
@@ -58,7 +73,7 @@ export default function AboutDialog() {
                 variant="outline"
                 size="sm"
                 className="rounded-full gap-1.5"
-                onClick={() => window.open("https://github.com/yourusername/ai-prompt-glossary", "_blank")}
+                onClick={() => window.open("https://github.com/lilianada/ai-prompt-glossary", "_blank")}
               >
                 <Github className="h-4 w-4" />
                 <span>GitHub Repository</span>
@@ -67,7 +82,7 @@ export default function AboutDialog() {
                 variant="outline"
                 size="sm"
                 className="rounded-full gap-1.5"
-                onClick={() => window.open("https://github.com/yourusername/ai-prompt-glossary/issues/new", "_blank")}
+                onClick={() => window.open("https://github.com/lilianada/ai-prompt-glossary/issues/new", "_blank")}
               >
                 <ExternalLink className="h-4 w-4" />
                 <span>Report Issue</span>
